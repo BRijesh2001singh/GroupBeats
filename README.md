@@ -4,8 +4,11 @@
 This project is a full-stack application with the client built using **Next.js** and the server built using **Node.js**, **Express.js**, **Prisma**, and **PostgreSQL**, all written in **TypeScript**.
 ## DEMO
 ![Landing Page](./images/sc1.png)
+**Features**
 ![Features](./images/sc2.png)
+**Admin Page**
 ![Admin Page](./images/sc3.png)
+**Listener Page**
 ![Listener Page](./images/sc4.png)
 
 ## Folder Structure
