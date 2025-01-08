@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/db/config.ts","./src/controllers/checkadminstatus.ts","./src/controllers/createuser.ts","./src/controllers/updateroomdata.ts","./src/routes/routes.ts","./src/utility/ratelimiter.ts"],"version":"5.7.2"}
