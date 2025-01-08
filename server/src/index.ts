@@ -208,7 +208,9 @@ redisSub.on("message", (channel, message) => {
                 redisPub.del(roomcode);  
             }
             // Broadcast to the room that the user has disconnected
-            io.to(roomcode).emit("user-count",-1);
+                        io.to(roomcode).emit("user-count",-1);
+
+            io.to(roomcode).emit("user-left", { roomcode, userId: socket.id });
         }
     });
     })
