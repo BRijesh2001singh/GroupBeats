@@ -1,7 +1,12 @@
 
-# Full-Stack Application Setup (Client + Server)
+## GroupBeats Application Demo & Setup  (Client + Server)
 
 This project is a full-stack application with the client built using **Next.js** and the server built using **Node.js**, **Express.js**, **Prisma**, and **PostgreSQL**, all written in **TypeScript**.
+## DEMO
+![Landing Page](./images/sc1.png)
+![Features](./images/sc2.png)
+![Admin Page](./images/sc3.png)
+![Listener Page](./images/sc4.png)
 
 ## Folder Structure
 
@@ -9,9 +14,6 @@ This project is a full-stack application with the client built using **Next.js**
 /project-root
   /client      # Next.js frontend
   /server      # Node.js backend with Express.js
-  .env         # Environment variables for both client and server
-  tsconfig.json
-  package.json
 ```
 
 ## Prerequisites
@@ -20,7 +22,7 @@ Before you begin, ensure that you have the following software installed:
 
 - **Node.js** (version >=14)
 - **PostgreSQL** (for the database)
-- **Redis** (if using caching)
+- **Redis** ( caching)
 - **TypeScript** (global or locally)
 - **Git**
 
@@ -31,8 +33,7 @@ Before you begin, ensure that you have the following software installed:
 Clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/full-stack-app.git
-cd full-stack-app
+git clone https://github.com/BRijesh2001singh/GroupBeats.git
 ```
 
 ### Step 2: Set up the Client (Next.js with TypeScript)
@@ -52,7 +53,12 @@ npm install
 3. Configure environment variables. Create a `.env.local` file in the `client` directory and add:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_YT_API_KEY=your_YT_API_KEY
+GOOGLE_AUTH_CLIENT_ID=your_google_client_ID
+GOOGLE_AUTH_CLIENT_SECRET=your_google_client_secret
+
+
 ```
 
 This sets the API URL for the client to communicate with the backend.
@@ -83,7 +89,7 @@ npm install
 
 ```env
 DATABASE_URL=postgresql://username:password@localhost:5432/your_database
-REDIS_URL=redis://localhost:6379
+REDIS_CLIENT=redis://localhost:6379
 ```
 
 4. Run database migrations with Prisma:
@@ -169,15 +175,6 @@ npm run dev
      "include": ["server/**/*.ts", "client/**/*.ts", "client/**/*.tsx"]
    }
    ```
-
-### Step 7: Deployment
-
-To deploy the application, you can use services like **Heroku** for the backend and **Vercel** for the frontend.
-
-### Step 8: Contribution
+### Step 7: Contribution
 
 Feel free to fork this project and contribute by opening issues or submitting pull requests.
-
-### Step 9: License
-
-This project is licensed under the MIT License.
