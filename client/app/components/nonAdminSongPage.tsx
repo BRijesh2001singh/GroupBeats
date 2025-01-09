@@ -14,9 +14,9 @@ export const NonAdminSongPage = () => {
   useEffect(() => {
     // Listen for the "get-current-song" event
     socket.on("get-current-song", (song) => {
-      if (song?.currentsong) {
-        setCurrentSong(song.currentsong[0]);
-        console.log(song.currentsong[0].currentSong);
+      console.log("getting current song",song.currentlyPlaying)
+      if (song.currentlyPlaying) {
+        setCurrentSong(song.currentlyPlaying);
       } else {
         setCurrentSong(null);
       }
@@ -30,7 +30,7 @@ export const NonAdminSongPage = () => {
 
   return (
     <div>
-      {currentSong ? (
+      {currentSong?.currentSongThumbanail ? (
         <div className='flex flex-col justify-center items-center'>
           <h3 className="text-100 font-bold">
             Now Playing: {currentSong.currentSong?.substring(0, 55) || "Unknown Song"}

@@ -4,6 +4,7 @@ import { useState,useRef} from 'react';
 import { extractVideoId } from '../utility/ytVideoIdExtractor';
 import { socket } from "../socketConfig/socketConfig";
 import Image from 'next/image';
+import {Pause,Play,Video,AudioLinesIcon}from "lucide-react"
 interface SongData {
   songname: string;
   votes: number;
@@ -22,6 +23,7 @@ export const YTmusicPlayer = ({ songList,roomcode }: YTmusicPlayerProps) => {
   const [currSongName,setCurrSongName]=useState<string>("");
   const [currSongThumbnail,setCurrSongThumbnail]=useState<string>("");
   const [musicPlayerStatus,setMusicPlayerStatus]=useState<boolean>(true);
+  const [videoDisplay,setVideoDisplay]=useState<boolean>(false);
     const playerRef = useRef<YouTubePlayer|null>(null);
   // This effect updates when the songList or currentSongIndex changes
     const startPlayingQueue=()=>{
@@ -39,10 +41,13 @@ export const YTmusicPlayer = ({ songList,roomcode }: YTmusicPlayerProps) => {
     event.target.playVideo();
     playerRef.current=event.target;
   };
-
+//video toggle
+const videoToggle=()=>{
+   setVideoDisplay(!videoDisplay);
+}
   const opts: YouTubeProps['opts'] = {
-    height: '350',
-    width: '600',
+    height: '300',
+    width: '400',
     playerVars: {
       autoplay: 1,
       cc_load_policy: 0,
@@ -61,6 +66,7 @@ export const YTmusicPlayer = ({ songList,roomcode }: YTmusicPlayerProps) => {
       const currentSong=songList[0].songname;
       const currentSongThumbanail=songList[0].thumbnail;
       socket.emit("add-current-song",{roomcode,song:{currentSong,currentSongThumbanail}});
+      console.log("update current songs",song);
       removeSong(song);
       console.log(song);
     }
@@ -96,29 +102,36 @@ const onPlayerEnd:YouTubeProps['onEnd']=()=>{
   return (
     <div>
       <div className="w-full h-1/2">
-      <div>
+      <div className='flex flex-row items-center'> 
       <button className='bg-purple-600 hover:bg-purple-700 px-4 mr-2 py-2 rounded-lg font-medium' onClick={startPlayingQueue}>Start Queue
       </button>
       <button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium mr-2' onClick={playNext}>Play Next
       </button>
       {
-        musicPlayerStatus?(<button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium ' onClick={pauseVideo}>Pause
+        musicPlayerStatus?(<button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium mr-2 ' onClick={pauseVideo}><Pause/>
       </button>):
-        (<button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium ' onClick={resumeVideo}>Play
+        (<button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium mr-2' onClick={resumeVideo}><Play/>
       </button>)
       }
+      {
+       videoDisplay?(<button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium ' onClick={videoToggle}><AudioLinesIcon/>
+      </button>):
+        (<button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium ' onClick={videoToggle}><Video/>
+      </button>)
+      }
+      
       </div>
       {videoId&&<h3 className="text-100 font-bold">Now Playing :{currSongName.substring(0,55)}.....</h3>}
         {videoId ? (
           <div>
-                      <YouTube videoId={videoId} opts={opts} onReady={onPlayerReady} onEnd={onPlayerEnd} className='hidden'/>
+                      <YouTube videoId={videoId} opts={opts} onReady={onPlayerReady} onEnd={onPlayerEnd} className={videoDisplay?"visible":"hidden"}/>
                        <Image
                                 src={currSongThumbnail}
                                 alt="Video Thumbnail"
                                 width={450} // Width of the image (in pixels)
                                 height={300} // Height of the image (in pixels)
                                 quality={100} // Optional: Image quality (default is 75)
-                                className="rounded-lg ml-5 mt-1"
+                                className={videoDisplay?"hidden":"visible rounded-lg ml-5 mt-1"}
                               />
           </div>
         ) : (

@@ -26,7 +26,7 @@ interface AddSongResponse {
     status: "success" | "error";
 }
 
-export const SongRoom = ({ roomname }: { roomname: string | undefined }) => {
+export const SongRoom = ({ roomname }: { roomname: string }) => {
     const [songname, setSongname] = useState<string>("");
     const [songQueue, setSongQueue] = useState<SongData[]>([]);
     const [roomcode, setRoomCode] = useState<string>("");
@@ -67,7 +67,6 @@ export const SongRoom = ({ roomname }: { roomname: string | undefined }) => {
         socket.on('user-joined', (data) => {
             setRoomCode(data);
         });
-
         socket.on("user-count",(data)=>{
             if(data==0)return;
             if(data==-1){
@@ -92,9 +91,9 @@ export const SongRoom = ({ roomname }: { roomname: string | undefined }) => {
             socket.off("join-room");
             socket.off("user-joined");
             socket.off("get-songs");
+            socket.off("user-count");
         };
     }, [roomname, session.data?.user?.backendId]);
-
     const submitSong = async () => {
         if (songname?.length === 0) {
             setError("Song name cannot be empty!");
@@ -167,7 +166,7 @@ export const SongRoom = ({ roomname }: { roomname: string | undefined }) => {
                             <LogOut className="h-5 w-5" />
                             <span className="font-bold">Exit Room</span>
                         </button>
-                        <span>Listeners:{userCount}</span>
+                        <span>Listeners:{userCount==0?0:userCount-1}</span>
                     </div>
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8">
