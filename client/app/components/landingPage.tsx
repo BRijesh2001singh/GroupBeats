@@ -13,12 +13,10 @@ export default function LandingPage() {
   const [error, setError] = useState<string>('')
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const [isUpdatingRoom, setIsUpdatingRoom] = useState(false);
-  const [loading,setLoading]=useState<boolean>(false);
   const session=useSession();
   const apiurl=process.env.NEXT_PUBLIC_API_URL;
 
   const createRoom = async() => {
-    setLoading(true);
     if (isUpdatingRoom) return; // Prevent duplicate requests
     setIsUpdatingRoom(true);
     if(session.data?.user&&session.data.user.name){
@@ -32,14 +30,12 @@ export default function LandingPage() {
         if(response.status===200){
         setRoomname(newRoomName);
         setStatus(true);
-        setLoading(false);
         }
         else {
           alert("Error setting new room Id!")
         }
   
     } catch {
-      setLoading(false);
       alert("Unable to connect to server")
     }
     }
@@ -86,7 +82,7 @@ export default function LandingPage() {
     isUpdatingRoom ? "opacity-50 cursor-not-allowed" : ""
   }`}
 >
-            <Users className="mr-2 h-5 w-5" />  {loading ? (
+            <Users className="mr-2 h-5 w-5" />  {isUpdatingRoom ? (
         <>
           <div
             className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"

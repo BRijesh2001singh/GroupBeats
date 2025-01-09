@@ -11,13 +11,13 @@ const server=http.createServer(app);
 
 ///cors setting 
 app.use(cors({
-    origin: 'http://localhost:3000', // Allows requests from this frontend URL
+    origin:process.env.CLIENT_URL, // Allows requests from this frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Methods to allow
     allowedHeaders: ['Content-Type', 'Authorization'] // Headers to allow
 }));
 const io =new Server(server,{
     cors:{
-        origin:"http://localhost:3000",
+        origin:process.env.CLIENT_URL,
         methods:["GET","POST","PUT","DELETE"]
     }
 })
@@ -37,9 +37,9 @@ interface SongData{
 interface RoomData{
     users: string[];
     songs: SongData[];
-    currentlyPlaying:string;
+    currentlyPlaying:{}
 }
-//dev redis
+// dev redis
 // const redisPub=new Redis({host:"127.0.0.1",port:6379}); 
 // const redisSub=new Redis({host:"127.0.0.1",port:6379});
 const redis_client=process.env.REDIS_CLIENT;
@@ -61,9 +61,7 @@ redisSub.subscribe("songroom");
 redisSub.on("message", (channel, message) => {
     if (channel === "songroom") {
         const { roomcode, event, payload } = JSON.parse(message);
-
         if (event === "get-songs") {
-            console.log(`Broadcasting songs for room ${roomcode}`);
             // Broadcast the songs to all clients in the specified room
             io.to(roomcode).emit("get-songs", payload.songs);
         }
@@ -75,14 +73,34 @@ redisSub.on("message", (channel, message) => {
      return exists===1;
     }
     //store room state in redis
-    const saveRoomData=(roomcode:string,data:RoomData)=>{
-      redisPub.set(roomcode,JSON.stringify(data),'EX',36000);
-    }
+    const saveRoomData = (roomcode: string, data: RoomData) => {
+        redisPub.set(roomcode, JSON.stringify(data), "EX", 36000, (err, result) => {
+            if (err) {
+                console.error("Error saving room data to Redis:", err);
+            } else {
+                console.log("Room data saved to Redis:", result);
+            }
+        });
+    };
+    
     //get room state from redis
-     const getRoomData=async(roomcode:string)=>{
-        const roomData=await redisPub.get(roomcode);
-        return roomData?JSON.parse(roomData):{users:[],songs:[],currentlyPlaying:[]};
-     }
+    const getRoomData = async (roomcode: string) => {
+        const roomData = await redisPub.get(roomcode);
+        if (!roomData) {
+            console.log("Room not found in Redis, initializing new room");
+            return { users: [], songs: []};
+        }
+        return JSON.parse(roomData);
+    };
+
+    //currently playing redis data
+    const getCurrentlyPlayingData=async(roomcode:string)=>{
+        const currentPlayingRoomdata=await redisPub.get(roomcode);
+        if(!currentPlayingRoomdata){
+            return{currentlyPlaying:{}}
+        }
+        return JSON.parse(currentPlayingRoomdata);
+    }
    //sort songs
    const sortSongsBasedOnVotes=async(data:SongData)=>{
       const {roomcode,votes,songname}=data;
@@ -107,19 +125,18 @@ redisSub.on("message", (channel, message) => {
         socket.on("join-room",async({roomcode})=>{
         try {
             const roomdata=await getRoomData(roomcode);
+            const currentlyPlayingRoomKey=roomcode+"currentsong";
+            const currentlyPlayingSongData=await getCurrentlyPlayingData(currentlyPlayingRoomKey);
                 roomdata.users.push(socket.id);
             saveRoomData(roomcode,roomdata);
             socket.join(roomcode);  
             console.log(`${socket.id} user has joined this ${roomcode} room`);
             //broadcast current song
-            io.to(roomcode).emit("get-current-song",{currentsong:roomdata.currentlyPlaying[0]})
+            io.to(roomcode).emit("get-current-song",currentlyPlayingSongData)
             //broadcast to rooms
             io.to(roomcode).emit('get-songs',roomdata.songs);
             io.to(roomcode).emit("user-joined",roomcode);
             io.to(roomcode).emit("user-count",roomdata.users.length);
-            socket.on("roomowner",({roomowner})=>{
-                io.to(roomcode).emit("who-is-room-owner",roomowner);
-            })
 
         } catch (error) {
             console.log("Error joining room");
@@ -127,12 +144,12 @@ redisSub.on("message", (channel, message) => {
         })
         //adding current song of room to the redis
         socket.on("add-current-song",async({roomcode,song})=>{
-            const roomdata=await getRoomData(roomcode);
-            roomdata.currentlyPlaying.push(song);
-            saveRoomData(roomcode,roomdata);
-            io.to(roomcode).emit("get-current-song",{currentsong:roomdata.currentlyPlaying})
+            const currentlyPlayingRoomKey=roomcode+"currentsong";
+            const currentlyPlayingRoomData=await getCurrentlyPlayingData(currentlyPlayingRoomKey);
+            currentlyPlayingRoomData.currentlyPlaying=song;
+            saveRoomData(currentlyPlayingRoomKey,currentlyPlayingRoomData);
+            io.to(roomcode).emit("get-current-song",currentlyPlayingRoomData)
         })
-
         //handle messages 
         socket.on("add-song",async(data:SongData,callback)=>{
        ///rate limiter 
@@ -154,7 +171,6 @@ redisSub.on("message", (channel, message) => {
         }
             roomdata.songs.push({songname:title,songUrl:songname,thumbnail:thumbnail,votes:0});
             saveRoomData(roomcode,roomdata);
-            console.log(`new msg recieved from ${roomcode}`,songname);
              // Publish the message to Redis to broadcast to all instances
              redisPub.publish(
                 "songroom",
@@ -172,7 +188,7 @@ redisSub.on("message", (channel, message) => {
             roomData.songs = roomData.songs.filter((s: SongData) => {
                 return s.songUrl !== songUrl;
               });           
-              saveRoomData(roomcode,roomData);           
+              saveRoomData(roomcode,roomData); 
             io.to(roomcode).emit('get-songs',roomData.songs);
          })
           //handle votes
@@ -197,7 +213,12 @@ redisSub.on("message", (channel, message) => {
     socket.on("disconnect", async () => {
         console.log("user disconnected");
         // Loop through all rooms the user is in and remove the user
-        const rooms =await redisPub.keys("*");
+        const allKeys = await redisPub.keys("*");
+        const rooms = allKeys.filter((key) => 
+            !key.includes("currentsong") && 
+            !key.includes(`rate-limit:votes:${socket.id}`) && 
+            !key.includes(`rate-limit:add-song:${socket.id}`)
+        );// Exclude any keys with 'currentsong'
         for (const roomcode of rooms) {
             // Get the room data
             const roomData = await getRoomData(roomcode);
@@ -205,7 +226,11 @@ redisSub.on("message", (channel, message) => {
             saveRoomData(roomcode, roomData);
             //removing room from redis if room is empty
                         if (roomData.users.length === 0) {
+                            //delete all the keys related to the room if all users left the room
                 redisPub.del(roomcode);  
+                redisPub.del(`${roomcode}currentsong`)
+                redisPub.del(`rate-limit:votes:${socket.id}`);
+                redisPub.del(`rate-limit:add-song:${socket.id}`);
             }
             // Broadcast to the room that the user has disconnected
                         io.to(roomcode).emit("user-count",-1);
@@ -217,4 +242,4 @@ redisSub.on("message", (channel, message) => {
   
 
 
-server.listen(5000,()=>console.log("server started"));
+server.listen(process.env.PORT||8080,()=>console.log("server started"));
