@@ -1,6 +1,6 @@
 'use client'
 import YouTube, { YouTubeProps,YouTubePlayer } from 'react-youtube';
-import { useState,useRef,useEffect} from 'react';
+import { useState,useRef} from 'react';
 import { extractVideoId } from '../utility/ytVideoIdExtractor';
 import { socket } from "../socketConfig/socketConfig";
 import Image from 'next/image';
@@ -45,17 +45,13 @@ export const YTmusicPlayer = ({ songList,roomcode }: YTmusicPlayerProps) => {
 const videoToggle=()=>{
    setVideoDisplay(!videoDisplay);
 }
-const [opts, setOpts] = useState<YouTubeProps['opts']>({
-  height: '300',
-  width: '400',
+const opts:YouTubeProps['opts']={  height: 'auto',
+  width: 'auto',
   playerVars: {
     autoplay: 1,
     cc_load_policy: 0,
-    rel: 0,
-  },
-});
-
-
+    rel: 0,}
+  };
   // Play next song
   const playNext = () => {
     if (songList.length > 0) {
@@ -97,39 +93,6 @@ const onPlayerEnd:YouTubeProps['onEnd']=()=>{
     const removeSong=(songUrl:string) =>{
        socket.emit('remove-song',{roomcode,songUrl});
     }
-//change yt component
-useEffect(() => {
-  const updateOpts = () => {
-    if (window.innerWidth < 768) {
-      setOpts({
-        height: '200',
-        width: '300',
-        playerVars: {
-          autoplay: 1,
-          cc_load_policy: 0,
-          rel: 0,
-        },
-      });
-    } else {
-      setOpts({
-        height: '300',
-        width: '400',
-        playerVars: {
-          autoplay: 1,
-          cc_load_policy: 0,
-          rel: 0,
-        },
-      });
-    }
-  };
-
-  updateOpts(); // Initial check
-  window.addEventListener('resize', updateOpts); // Update on resize
-
-  return () => {
-    window.removeEventListener('resize', updateOpts);
-  };
-}, []);
 
   return (
     <div>

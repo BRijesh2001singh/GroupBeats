@@ -105,7 +105,6 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                 return;
             }
             const videoDetails = await fetchVideoDetails(songname);
-            console.log(videoDetails);
             if (!videoDetails) {
                 setError("Failed to fetch video details");
                 return;
