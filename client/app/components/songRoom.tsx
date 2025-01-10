@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { socket } from "../socketConfig/socketConfig";
-import { Copy, Check, ThumbsUp, ThumbsDown, Music, LogOut } from 'lucide-react';
+import { Copy, Check, ThumbsUp, ThumbsDown, Music, LogOut,Plus,Trash } from 'lucide-react';
 import { isValidYoutubeVideoUrl } from "../utility/ytLinkValidator";
 import Image from 'next/image';
 import { fetchVideoDetails } from "../utility/extractVideoDetails";
@@ -147,10 +147,10 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                         <Music className="h-10 w-10 text-purple-300" />
                         <span className="text-3xl font-bold text-purple-300">GroupBeats</span>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 flex-wrap">
                         <div className="flex items-center bg-purple-800 p-2 rounded-lg overflow-hidden shadow-lg">
-                            <h3 className="font-bold mr-2">Share Room Code:</h3>
-                            <span className="px-3 py-2 bg-purple-700 rounded">{roomname}</span>
+                            <h3 className="font-bold mr-2 text-sm">Share Room Code:</h3>
+                            <span className="px-3 py-2 bg-purple-700 rounded text-sm ">{roomname}</span>
                             <button
                                 onClick={copyRoomCode}
                                 className="bg-purple-600 hover:bg-purple-500 px-3 py-2 ml-2 rounded transition-colors text-white"
@@ -161,10 +161,10 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                         </div>
                         <button
                             onClick={exitRoom}
-                            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
+                            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 md:px-4 md:py-2 px-1 py-1 rounded-lg transition-colors md:my-0 my-2"
                         >
                             <LogOut className="h-5 w-5" />
-                            <span className="font-bold">Exit Room</span>
+                            <span className="md:font-bold font-medium md:my-0 my-2">Exit Room</span>
                         </button>
                         <span>Listeners:{userCount==0?0:userCount-1}</span>
                     </div>
@@ -186,17 +186,17 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                                     onClick={submitSong}
                                     className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-r-lg font-bold transition-colors"
                                 >
-                                    ADD
+                                    <Plus/>
                                 </button>
                             </div>
                             {error && <span className="text-red-400 block mt-2">{error}</span>}
                         </div>
                         <div className="bg-purple-800 bg-opacity-50 rounded-lg p-6 h-[calc(100vh-300px)] overflow-y-auto shadow-xl overflow-x-hidden">
-                            <h2 className="text-2xl font-bold mb-6 text-purple-300">Song Queue</h2>
+                            <h2 className="text-xl md:text-2xl font-bold mb-6 text-purple-300">Song Queue</h2>
                             <div className="space-y-4">
                                 {songQueue.map((item, ind) => (
-                                    <div key={ind} className="flex items-center justify-between bg-purple-700 bg-opacity-60 p-4 rounded-lg hover:bg-purple-600 transition-colors">
-                                        <div className="flex items-center space-x-4 flex-1">
+                                    <div key={ind} className="flex items-center justify-between flex-wrap bg-purple-700 bg-opacity-60 p-4 rounded-lg hover:bg-purple-600 transition-colors overflow-hidden  ">
+                                        <div className="flex items-center md:space-x-4 flex-1">
                                             <Image 
                                                 src={item.thumbnail}
                                                 alt="video thumbnail"
@@ -204,30 +204,30 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                                                 height={60}
                                                 className="rounded-lg"
                                             />
-                                            <span className="text-white truncate flex-1">{item.songname.substring(0,40)}</span>
+                                            <span className="text-white truncate flex-1 text-sm md:text-xl">{item.songname.substring(0,40)}</span>
                                         </div>
-                                        <div className="flex items-center space-x-3">
+                                        <div className="flex items-center space-x-3 space-y-2 md:space-y-0">
                                             <span className="font-bold">{item.votes}</span>
                                             {userVotes[item.songUrl] === 'up' ? (
                                                 <button
                                                     onClick={() => submitVotes(item.songUrl, 'down')}
-                                                    className="p-2 rounded bg-red-500 hover:bg-red-600 transition-colors"
+                                                    className="md:p-2 p-1 rounded bg-red-500 hover:bg-red-600 transition-colors"
                                                 >
                                                     <ThumbsDown className="w-5 h-5" />
                                                 </button>
                                             ) : (
                                                 <button
                                                     onClick={() => submitVotes(item.songUrl, 'up')}
-                                                    className="p-2 rounded bg-green-500 hover:bg-green-600 transition-colors"
+                                                    className="md:p-2 p-1 rounded bg-green-500 hover:bg-green-600 transition-colors"
                                                 >
                                                     <ThumbsUp className="w-5 h-5" />
                                                 </button>
                                             )}
                                             {isAdmin&&<button 
                                                 onClick={() => removeSong(item.songUrl)}
-                                                className="p-2 rounded bg-red-600 hover:bg-red-700 transition-colors"
+                                                className="md:p-2 p-1 rounded bg-red-600 hover:bg-red-700 transition-colors"
                                             >
-                                                <span className="font-bold">X</span>
+                                                <span className="font-bold"><Trash/></span>
                                             </button>}
                                         </div>
                                     </div>
