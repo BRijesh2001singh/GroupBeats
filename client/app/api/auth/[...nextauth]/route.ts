@@ -2,8 +2,10 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import axios from "axios";
 const apiurl=process.env.NEXT_PUBLIC_API_URL;
+const nextAuth_secret=process.env.NEXTAUTH_SECRET;
 const handler=NextAuth({
-providers:[
+    secret:nextAuth_secret,
+    providers:[
     Google({
     clientId:process.env.GOOGLE_AUTH_CLIENT_ID??"",
     clientSecret:process.env.GOOGLE_AUTH_CLIENT_SECRET??"",
