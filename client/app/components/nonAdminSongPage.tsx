@@ -14,7 +14,6 @@ export const NonAdminSongPage = () => {
   useEffect(() => {
     // Listen for the "get-current-song" event
     socket.on("get-current-song", (song) => {
-      console.log("getting current song",song.currentlyPlaying)
       if (song.currentlyPlaying) {
         setCurrentSong(song.currentlyPlaying);
       } else {
