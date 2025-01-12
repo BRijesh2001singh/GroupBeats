@@ -98,9 +98,9 @@ const onPlayerEnd:YouTubeProps['onEnd']=()=>{
     <div>
       <div className="w-full h-1/2">
       <div className='flex flex-row items-center'> 
-      <button className='bg-purple-600 hover:bg-purple-700 text-sm md:text-xl px-4 mr-2 py-2 rounded-lg font-medium' onClick={startPlayingQueue}>Start Queue
+      <button className='bg-purple-600 hover:bg-purple-700 text-sm md:text-lg px-4 mr-2 py-2 rounded-lg font-medium' onClick={startPlayingQueue}>Start Queue
       </button>
-      <button  className='bg-purple-600 hover:bg-purple-700 text-sm md:text-xl px-4 py-2 rounded-lg font-medium mr-2' onClick={playNext}>Play Next
+      <button  className='bg-purple-600 hover:bg-purple-700 text-sm md:text-lg px-4 py-2 rounded-lg font-medium mr-2' onClick={playNext}>Play Next
       </button>
       {
         musicPlayerStatus?(<button  className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium mr-2 ' onClick={pauseVideo}><Pause/>
