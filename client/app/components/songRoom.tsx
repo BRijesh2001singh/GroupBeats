@@ -234,7 +234,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                                                 height={60}
                                                 className="rounded-lg"
                                             />
-                                            <span className="text-white truncate flex-1 text-sm md:text-xl">{item.songname.substring(0,40)}</span>
+                                            <span className="text-white truncate flex-1 text-sm md:text-md">{item.songname.substring(0,35)}</span>
                                         </div>
                                         <div className="flex items-center space-x-3 space-y-2 md:space-y-0">
                                             <span className="font-bold">{item.votes}</span>
