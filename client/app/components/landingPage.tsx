@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import axios from 'axios'
 import {v4 as uuid}from "uuid"
 import { Navbar } from './navbar'
+import { toast, ToastContainer,Zoom } from 'react-toastify'
 export default function LandingPage() {
   const [roomname, setRoomname] = useState<string>('')
   const [status, setStatus] = useState<boolean>(false)
@@ -32,15 +33,14 @@ export default function LandingPage() {
         setStatus(true);
         }
         else {
-          alert("Error setting new room Id!")
+          toast.error("Error setting new room Id!");
         }
-  
     } catch {
-      alert("Unable to connect to server")
+      toast.error("Unable to connect to server");
     }
     }
     else{
-      alert("Please Login to create new room.");
+      toast.error(<p className='text-white'>Please Login to create a new room.</p>,{className:"bg-purple-800"});
     }
     setIsUpdatingRoom(false);
   }
@@ -63,6 +63,19 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-900 to-indigo-900 text-white">
+                                <ToastContainer
+                    position="top-center"
+                    autoClose={2000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick={false}
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                    transition={Zoom}
+                    />
       <header className="container mx-auto py-6 px-4">
         <Navbar/>
       </header>

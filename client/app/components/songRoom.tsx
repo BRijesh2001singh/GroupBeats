@@ -10,6 +10,7 @@ import { YTmusicPlayer } from "./ytMusicPlayer";
 import { useSession } from "next-auth/react";
 import { checkIsAdmin } from "../utility/checkAdmin";
 import { NonAdminSongPage } from "./nonAdminSongPage";
+import {toast,ToastContainer} from "react-toastify";
 
 interface SongData {
     songname: string;
@@ -36,6 +37,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [userCount,setUserCount]=useState<number>(0);
     const session = useSession();
+    const [toastId,setToastId]=useState<string|null>(null);
 
     const addSongHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSongname(e.target.value);
@@ -131,16 +133,44 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
     const removeSong = (songUrl: string) => {
         socket.emit('remove-song', {roomcode, songUrl});
     }
+//handle exit room confirmation with TOAST
 
     const exitRoom = () => {
-        const userResponse = window.confirm("Are you sure you want to exit?");
-        if (userResponse) {
-            window.location.reload()
+        if(toast.isActive(toastId as string))return;
+          // Check screen width
+  if (window.innerWidth <= 768) {
+    // Show native confirmation dialog for small screens
+    const userConfirmed = window.confirm("Are you sure you want to exit the room?");
+    if (userConfirmed) {
+      window.location.reload(); // Perform the action
+    }
+  }
+ else{  const id= toast(
+        <div>
+            <p className="text-white md:text-lg text-sm">Are you sure you want to exit room?</p>
+            <div className="flex flex-row justify-evenly text-white mt-1">
+                <button onClick={()=>{
+                    toast.dismiss();
+                    window.location.reload();
+                }} className="md:p-1 hover:text-black ">Yes</button>
+                <button onClick={()=>toast.dismiss()}  className="md:p-1 hover:text-black">No</button>
+            </div>
+        </div>,{
+            position:'top-center',
+            autoClose:false,
+            closeOnClick:true,
+            draggable:false,
+            hideProgressBar:true,
+            className:"bg-purple-800 p-3"
         }
+    )
+    setToastId(id as string)  //avoid toast pile up on button clicks
+}
     }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 text-white p-4 md:p-8">
+            <ToastContainer/>
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8">
                     <div className="flex items-center space-x-2 mb-4 md:mb-0">
