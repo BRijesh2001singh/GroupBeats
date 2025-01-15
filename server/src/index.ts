@@ -232,14 +232,10 @@ redisSub.on("message", (channel, message) => {
                 redisPub.del(`rate-limit:votes:${socket.id}`);
                 redisPub.del(`rate-limit:add-song:${socket.id}`);
             }
-            // Broadcast to the room that the user has disconnected
-                        io.to(roomcode).emit("user-count",-1);
-
             io.to(roomcode).emit("user-left", { roomcode, userId: socket.id });
+            io.to(roomcode).emit("user-count",roomData.users.length);
         }
+          // Broadcast to the room that the user has disconnected
     });
     })
-  
-
-
 server.listen(process.env.PORT||8080,()=>console.log("server started"));

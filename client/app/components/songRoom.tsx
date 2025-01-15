@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { socket } from "../socketConfig/socketConfig";
-import { Copy, Check, ThumbsUp, ThumbsDown, Music, LogOut,Plus,Trash } from 'lucide-react';
+import { Copy, Check, ThumbsUp, ThumbsDown, Music, LogOut,Plus,Trash2 } from 'lucide-react';
 import { isValidYoutubeVideoUrl } from "../utility/ytLinkValidator";
 import Image from 'next/image';
 import { fetchVideoDetails } from "../utility/extractVideoDetails";
@@ -10,7 +10,7 @@ import { YTmusicPlayer } from "./ytMusicPlayer";
 import { useSession } from "next-auth/react";
 import { checkIsAdmin } from "../utility/checkAdmin";
 import { NonAdminSongPage } from "./nonAdminSongPage";
-import {toast,ToastContainer} from "react-toastify";
+import {toast,ToastContainer,Zoom} from "react-toastify";
 
 interface SongData {
     songname: string;
@@ -38,7 +38,8 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
     const [userCount,setUserCount]=useState<number>(0);
     const session = useSession();
     const [toastId,setToastId]=useState<string|null>(null);
-
+    const [disableBtn,setDisableBtn]=useState<boolean>(false);
+    
     const addSongHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSongname(e.target.value);
         setError("");
@@ -46,22 +47,15 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
 
     const submitVotes = (songname: string, vote: 'up' | 'down') => {
         const currentVote = userVotes[songname];
-    
         if (currentVote === vote) {
-            socket.emit("votes", { songname, votes: vote === 'up' ? -1 : 1, roomcode });
-            setUserVotes((prev) => ({
-                ...prev,
-                [songname]: null,
-            }));
-        } else {
+          return ;
+        }
             const voteValue = vote === 'up' ? 1 : -1;
-    
             socket.emit("votes", { songname, votes: voteValue, roomcode });
             setUserVotes((prev) => ({
                 ...prev,
-                [songname]: vote,
+                [songname]: vote,   
             }));
-        }
     };
     
     useEffect(() => {
@@ -84,16 +78,26 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
         if(session.data?.user?.backendId){
             const checkAdminStatus = async () => {
                 const res = await checkIsAdmin(session.data?.user?.backendId, roomname);
-
                 setIsAdmin(res);
             }
             checkAdminStatus();
         }
+        socket.on("rate-limit-exceeded",(data)=>{
+           if(data){
+            setError(`${data.event} limit exceeded please wait for 10sec.`);
+            setDisableBtn(false);
+            setTimeout(()=>{
+                setError("");
+                setDisableBtn(false);
+            },10000)
+           }
+        })
         return () => {
             socket.off("join-room");
             socket.off("user-joined");
             socket.off("get-songs");
             socket.off("user-count");
+            socket.off("rate-limit-exceeded")
         };
     }, [roomname, session.data?.user?.backendId]);
     const submitSong = async () => {
@@ -161,7 +165,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
             closeOnClick:true,
             draggable:false,
             hideProgressBar:true,
-            className:"bg-purple-800 p-3"
+            className:"bg-purple-800 p-3",
         }
     )
     setToastId(id as string)  //avoid toast pile up on button clicks
@@ -170,7 +174,9 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 text-white p-4 md:p-8">
-            <ToastContainer/>
+            <ToastContainer
+            transition={Zoom}
+            />
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8">
                     <div className="flex items-center space-x-2 mb-4 md:mb-0">
@@ -196,7 +202,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                             <LogOut className="h-5 w-5" />
                             <span className="md:font-bold font-medium md:my-0 my-2">Exit Room</span>
                         </button>
-                        <span>Listeners:{userCount==0?0:userCount-1}</span>
+                        <span>Listeners:{userCount<=0?0:userCount-1}</span>
                     </div>
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8">
@@ -214,7 +220,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                                 />
                                 <button
                                     onClick={submitSong}
-                                    className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-r-lg font-bold transition-colors"
+                                    className= 'bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-r-lg font-bold transition-colors'
                                 >
                                     <Plus/>
                                 </button>
@@ -225,7 +231,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                             <h2 className="text-xl md:text-2xl font-bold mb-6 text-purple-300">Song Queue</h2>
                             <div className="space-y-4">
                                 {songQueue.map((item, ind) => (
-                                    <div key={ind} className="flex items-center justify-between flex-wrap bg-purple-700 bg-opacity-60 p-4 rounded-lg hover:bg-purple-600 transition-colors overflow-hidden  ">
+                                    <div key={ind} className="flex items-center justify-between flex-wrap bg-purple-700 bg-opacity-60 p-3 rounded-lg hover:bg-purple-600 transition-colors overflow-hidden  ">
                                         <div className="flex items-center md:space-x-4 flex-1">
                                             <Image 
                                                 src={item.thumbnail}
@@ -234,30 +240,32 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                                                 height={60}
                                                 className="rounded-lg"
                                             />
-                                            <span className="text-white truncate flex-1 text-sm md:text-md">{item.songname.substring(0,35)}</span>
+                                            <span className="text-white truncate flex-1 text-sm md:text-md">{item.songname.substring(0,40)}..</span>
                                         </div>
                                         <div className="flex items-center space-x-3 space-y-2 md:space-y-0">
                                             <span className="font-bold">{item.votes}</span>
-                                            {userVotes[item.songUrl] === 'up' ? (
+                                            {userVotes[item.songUrl] === 'up'||disableBtn? (
                                                 <button
                                                     onClick={() => submitVotes(item.songUrl, 'down')}
-                                                    className="md:p-2 p-1 rounded bg-red-500 hover:bg-red-600 transition-colors"
+                                                    className={`${disableBtn?'bg-gray-500 cursor-not-allowed':'bg-red-500 hover:bg-red-600'} md:p-2 p-1 rounded  transition-colors`}
+                                                    disabled={disableBtn}
                                                 >
-                                                    <ThumbsDown className="w-5 h-5" />
+                                                    <ThumbsDown className="w-3 h-4" />
                                                 </button>
                                             ) : (
                                                 <button
                                                     onClick={() => submitVotes(item.songUrl, 'up')}
-                                                    className="md:p-2 p-1 rounded bg-green-500 hover:bg-green-600 transition-colors"
+                                                    className={`md:p-2 p-1 rounded ${disableBtn?'bg-gray-500 cursor-not-allowed':'bg-green-500 hover:bg-green-600'}  transition-colors`}
+                                                    disabled={disableBtn}
                                                 >
-                                                    <ThumbsUp className="w-5 h-5" />
+                                                    <ThumbsUp className="w-3 h-4" />
                                                 </button>
                                             )}
                                             {isAdmin&&<button 
                                                 onClick={() => removeSong(item.songUrl)}
                                                 className="md:p-2 p-1 rounded bg-red-600 hover:bg-red-700 transition-colors"
                                             >
-                                                <span className="font-bold"><Trash/></span>
+                                                <span className="font-bold  " ><Trash2 className="w-3 h-4"/></span>
                                             </button>}
                                         </div>
                                     </div>
