@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { checkIsAdmin } from "../utility/checkAdmin";
 import { NonAdminSongPage } from "./nonAdminSongPage";
 import {toast,ToastContainer,Zoom} from "react-toastify";
+import { getRoomOwner } from "../utility/getRoomOwner";
 
 interface SongData {
     songname: string;
@@ -39,7 +40,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
     const session = useSession();
     const [toastId,setToastId]=useState<string|null>(null);
     const [disableBtn,setDisableBtn]=useState<boolean>(false);
-    
+    const [roomOwner,setRoomOwner]=useState<string|null>("Fetching....");
     const addSongHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSongname(e.target.value);
         setError("");
@@ -57,7 +58,7 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                 [songname]: vote,   
             }));
     };
-    
+
     useEffect(() => {
         socket.emit('join-room', { roomcode: roomname });
         socket.on('user-joined', (data) => {
@@ -100,6 +101,16 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
             socket.off("rate-limit-exceeded")
         };
     }, [roomname, session.data?.user?.backendId]);
+ //get room owner details
+    useEffect(()=>{
+        const updateRoomOwner=async()=>{
+            const owner= await getRoomOwner(roomcode);
+            setRoomOwner(owner);
+        }
+        if(roomcode&&!isAdmin)
+        updateRoomOwner();
+    },[roomcode,isAdmin])
+
     const submitSong = async () => {
         if (songname?.length === 0) {
             setError("Song name cannot be empty!");
@@ -283,11 +294,10 @@ export const SongRoom = ({ roomname }: { roomname: string }) => {
                         </div>
                     </div>
                 </div>
-                {session.data?.user && (
+               
                     <h1 className="text-xl font-medium mt-6 text-purple-300">
-                        Room Owner: {session.data?.user?.name}
+                        Room Owner:{isAdmin?session.data?.user.name:roomOwner}
                     </h1>
-                )}
             </div>
         </div>
     );
